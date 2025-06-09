@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Calculator X-7</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: radial-gradient(ellipse at center, #0f0f23 0%, #000000 70%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #00ffff, transparent),
+                radial-gradient(2px 2px at 40px 70px, #ff00ff, transparent),
+                radial-gradient(1px 1px at 90px 40px, #ffff00, transparent),
+                radial-gradient(1px 1px at 130px 80px, #00ff00, transparent),
+                radial-gradient(2px 2px at 160px 30px, #ff0066, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: sparkle 20s linear infinite;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        @keyframes sparkle {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        .calculator {
+            background: linear-gradient(145deg, rgba(0, 20, 40, 0.9), rgba(0, 10, 30, 0.95));
+            border: 2px solid #00ffff;
+            border-radius: 25px;
+            box-shadow: 
+                0 0 50px rgba(0, 255, 255, 0.3),
+                inset 0 0 50px rgba(0, 255, 255, 0.1),
+                0 0 100px rgba(0, 255, 255, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 380px;
+            position: relative;
+            animation: pulse-border 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 30px rgba(0, 255, 255, 0.3), inset 0 0 30px rgba(0, 255, 255, 0.1); }
+            100% { box-shadow: 0 0 60px rgba(0, 255, 255, 0.6), inset 0 0 60px rgba(0, 255, 255, 0.2); }
+        }
+
+        .calculator::before {
+            content: 'QUANTUM CALC X-7';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #00ffff, #ff00ff, #ffff00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            animation: glow-text 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow-text {
+            0% { filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.5)); }
+            100% { filter: drop-shadow(0 0 15px rgba(255, 0, 255, 0.8)); }
+        }
+
+        .display {
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(0, 20, 40, 0.6));
+            border: 1px solid #00ffff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: right;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        .display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ffff, transparent);
+            animation: scan-line 3s linear infinite;
+        }
+
+        @keyframes scan-line {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .display-secondary {
+            color: #ff00ff;
+            font-size: 14px;
+            margin-bottom: 8px;
+            min-height: 20px;
+            text-shadow: 0 0 10px #ff00ff;
+            font-weight: 400;
+        }
+
+        .display-main {
+            color: #00ffff;
+            font-size: 2.8rem;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 0 0 20px #00ffff;
+            animation: data-flow 0.3s ease-in-out;
+        }
+
+        @keyframes data-flow {
+            0% { opacity: 0.7; transform: scaleX(0.95); }
+            100% { opacity: 1; transform: scaleX(1); }
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 18px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            font-family: 'Orbitron', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        button:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .btn-number {
+            background: linear-gradient(145deg, rgba(0, 50, 100, 0.8), rgba(0, 30, 70, 0.9));
+            border: 1px solid #0080ff;
+            color: #ffffff;
+            text-shadow: 0 0 10px #0080ff;
+            box-shadow: 0 4px 15px rgba(0, 128, 255, 0.3);
+        }
+
+        .btn-number:hover {
+            box-shadow: 0 8px 25px rgba(0, 128, 255, 0.5);
+            text-shadow: 0 0 15px #0080ff;
+        }
+
+        .btn-operator {
+            background: linear-gradient(145deg, rgba(255, 0, 100, 0.7), rgba(200, 0, 80, 0.8));
+            border: 1px solid #ff0066;
+            color: #ffffff;
+            text-shadow: 0 0 10px #ff0066;
+            box-shadow: 0 4px 15px rgba(255, 0, 102, 0.3);
+        }
+
+        .btn-operator:hover {
+            box-shadow: 0 8px 25px rgba(255, 0, 102, 0.5);
+            text-shadow: 0 0 15px #ff0066;
+        }
+
+        .btn-equals {
+            background: linear-gradient(145deg, rgba(0, 255, 150, 0.7), rgba(0, 200, 120, 0.8));
+            border: 1px solid #00ff88;
+            color: #000000;
+            text-shadow: 0 0 10px #00ff88;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+            grid-column: span 2;
+            font-size: 1.5rem;
+        }
+
+        .btn-equals:hover {
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.5);
+            text-shadow: 0 0 15px #00ff88;
+        }
+
+        .btn-clear {
+            background: linear-gradient(145deg, rgba(255, 150, 0, 0.7), rgba(220, 120, 0, 0.8));
+            border: 1px solid #ff9500;
+            color: #000000;
+            text-shadow: 0 0 10px #ff9500;
+            box-shadow: 0 4px 15px rgba(255, 149, 0, 0.3);
+        }
+
+        .btn-clear:hover {
+            box-shadow: 0 8px 25px rgba(255, 149, 0, 0.5);
+            text-shadow: 0 0 15px #ff9500;
+        }
+
+        .btn-zero {
+            grid-column: span 2;
+        }
+
+        /* Holographic effect */
+        .calculator::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ff00);
+            border-radius: 30px;
+            z-index: -1;
+            animation: rotate-border 4s linear infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes rotate-border {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Power indicator */
+        .power-indicator {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            background: #00ff00;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #00ff00;
+            animation: pulse-power 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-power {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @media (max-width: 480px) {
+            .calculator {
+                padding: 25px;
+                max-width: 320px;
+            }
+            
+            button {
+                padding: 15px;
+                font-size: 1.1rem;
+            }
+            
+            .display-main {
+                font-size: 2.2rem;
+            }
+        }
+
+        /* Sound wave effect on calculation */
+        .calculating {
+            animation: sound-wave 0.5s ease-in-out;
+        }
+
+        @keyframes sound-wave {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.02); }
+            75% { transform: scale(0.98); }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="power-indicator"></div>
+        <div class="display">
+            <div class="display-secondary" id="secondaryDisplay"></div>
+            <div class="display-main" id="mainDisplay">0</div>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn-clear" onclick="clearAll()">AC</button>
+            <button class="btn-clear" onclick="clearEntry()">C</button>
+            <button class="btn-operator" onclick="appendOperator('/')">/</button>
+            <button class="btn-operator" onclick="appendOperator('*')">×</button>
+            
+            <button class="btn-number" onclick="appendNumber('7')">7</button>
+            <button class="btn-number" onclick="appendNumber('8')">8</button>
+            <button class="btn-number" onclick="appendNumber('9')">9</button>
+            <button class="btn-operator" onclick="appendOperator('-')">-</button>
+            
+            <button class="btn-number" onclick="appendNumber('4')">4</button>
+            <button class="btn-number" onclick="appendNumber('5')">5</button>
+            <button class="btn-number" onclick="appendNumber('6')">6</button>
+            <button class="btn-operator" onclick="appendOperator('+')">+</button>
+            
+            <button class="btn-number" onclick="appendNumber('1')">1</button>
+            <button class="btn-number" onclick="appendNumber('2')">2</button>
+            <button class="btn-number" onclick="appendNumber('3')">3</button>
+            <button class="btn-number" onclick="appendDecimal()">.</button>
+            
+            <button class="btn-number btn-zero" onclick="appendNumber('0')">0</button>
+            <button class="btn-equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        let currentInput = '';
+        let previousInput = '';
+        let operator = '';
+        let shouldResetDisplay = false;
+
+        const mainDisplay = document.getElementById('mainDisplay');
+        const secondaryDisplay = document.getElementById('secondaryDisplay');
+        const calculator = document.querySelector('.calculator');
+
+        // Futuristic sound effects (using Web Audio API)
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playBeep(frequency = 800, duration = 100) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+        }
+
+        function updateDisplay() {
+            mainDisplay.textContent = currentInput || '0';
+            mainDisplay.classList.add('calculating');
+            setTimeout(() => mainDisplay.classList.remove('calculating'), 300);
+            
+            if (previousInput && operator) {
+                secondaryDisplay.textContent = `${previousInput} ${operator === '*' ? '×' : operator}`;
+            } else {
+                secondaryDisplay.textContent = '';
+            }
+        }
+
+        function appendNumber(num) {
+            playBeep(600, 50);
+            
+            if (shouldResetDisplay) {
+                currentInput = '';
+                shouldResetDisplay = false;
+            }
+            
+            if (currentInput.length < 12) {
+                currentInput = currentInput === '0' ? num : currentInput + num;
+                updateDisplay();
+            }
+        }
+
+        function appendDecimal() {
+            playBeep(700, 50);
+            
+            if (shouldResetDisplay) {
+                currentInput = '0';
+                shouldResetDisplay = false;
+            }
+            
+            if (!currentInput.includes('.')) {
+                currentInput = currentInput || '0';
+                currentInput += '.';
+                updateDisplay();
+            }
+        }
+
+        function appendOperator(op) {
+            playBeep(900, 80);
+            
+            if (currentInput === '' && previousInput === '') return;
+            
+            if (previousInput !== '' && currentInput !== '' && !shouldResetDisplay) {
+                calculate();
+            }
+            
+            operator = op;
+            previousInput = currentInput || previousInput;
+            currentInput = '';
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+
+        function calculate() {
+            playBeep(1200, 150);
+            calculator.classList.add('calculating');
+            setTimeout(() => calculator.classList.remove('calculating'), 500);
+            
+            if (previousInput === '' || currentInput === '' || operator === '') return;
+            
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+            let result;
+            
+            switch (operator) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '*':
+                    result = prev * current;
+                    break;
+                case '/':
+                    if (current === 0) {
+                        mainDisplay.textContent = 'ERROR: DIV/0';
+                        mainDisplay.style.color = '#ff0000';
+                        setTimeout(() => {
+                            mainDisplay.style.color = '#00ffff';
+                            clearAll();
+                        }, 2000);
+                        return;
+                    }
+                    result = prev / current;
+                    break;
+                default:
+                    return;
+            }
+            
+            // Round to avoid floating point precision issues
+            result = Math.round(result * 100000000) / 100000000;
+            
+            currentInput = result.toString();
+            previousInput = '';
+            operator = '';
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        function clearEntry() {
+            playBeep(400, 100);
+            currentInput = '';
+            updateDisplay();
+        }
+
+        function clearAll() {
+            playBeep(300, 150);
+            currentInput = '';
+            previousInput = '';
+            operator = '';
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+
+        // Enhanced keyboard support with sci-fi feedback
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                appendNumber(key);
+            } else if (key === '.') {
+                appendDecimal();
+            } else if (key === '+' || key === '-') {
+                appendOperator(key);
+            } else if (key === '*') {
+                appendOperator('*');
+            } else if (key === '/') {
+                event.preventDefault();
+                appendOperator('/');
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                calculate();
+            } else if (key === 'Escape') {
+                clearAll();
+            } else if (key === 'Backspace') {
+                clearEntry();
+            }
+        });
+
+        // Initialize display with futuristic boot sequence
+        function bootSequence() {
+            mainDisplay.textContent = 'INITIALIZING...';
+            setTimeout(() => {
+                mainDisplay.textContent = 'QUANTUM CORE ONLINE';
+                setTimeout(() => {
+                    mainDisplay.textContent = 'READY';
+                    setTimeout(() => {
+                        updateDisplay();
+                    }, 1000);
+                }, 1000);
+            }, 1000);
+        }
+
+        // Start boot sequence
+        bootSequence();
+    </script>
+</body>
+</html>
